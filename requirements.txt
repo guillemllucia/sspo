@@ -1,0 +1,4 @@
+openmeteo_requests
+pandas
+stravalib
+numpy
