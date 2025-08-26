@@ -24,10 +24,10 @@ athlete = client.get_athlete()
 openmeteo = openmeteo_requests.Client()
 url = "https://archive-api.open-meteo.com/v1/archive"
 params = {
-	"latitude": segment.start_latlng.root[0], #52.52,
-	"longitude": segment.start_latlng.root[1], #13.41,
-	"start_date": f"{effort.start_date_local.year}-{effort.start_date_local.month:02d}-{effort.start_date_local.day:02d}", #"2025-08-09",
-	"end_date": f"{effort.start_date_local.year}-{effort.start_date_local.month:02d}-{effort.start_date_local.day:02d}", #"2025-08-23",
+	"latitude": segment.start_latlng.root[0],
+	"longitude": segment.start_latlng.root[1],
+	"start_date": f"{effort.start_date_local.year}-{effort.start_date_local.month:02d}-{effort.start_date_local.day:02d}",
+	"end_date": f"{effort.start_date_local.year}-{effort.start_date_local.month:02d}-{effort.start_date_local.day:02d}",
 	"hourly": ["temperature_2m", "wind_speed_10m", "wind_direction_10m"],
 	"timezone": "auto",
 }
