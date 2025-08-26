@@ -3,6 +3,7 @@ from stravalib import Client as StravaClient
 import numpy as np
 import pandas as pd
 import openmeteo_requests
+from pathlib import Path
 #import requests_cache
 #from retry_requests import retry
 
@@ -34,22 +35,32 @@ responses = openmeteo.weather_api(url, params=params)
 response = responses[0]
 hourly = response.Hourly()
 
-effort_dict = {'athlete_weight': [athlete.weight],
+effort_dict = {'id': [effort.id],
+ 'athlete_weight': [athlete.weight],
  'distance': [segment.distance],
- 'avg_grade': [segment.average_grade],
- 'max_grade': [segment.maximum_grade],
+ 'avg_grade': [round(segment.average_grade, 1)],
+ 'max_grade': [round(segment.maximum_grade, 1)],
  'elevation_gain': [segment.total_elevation_gain],
+ "start_latitude": [segment.start_latlng.root[0]],
+ "start_longitude": [segment.start_latlng.root[1]],
+ "end_latitude": [segment.end_latlng.root[0]],
+ "end_longitude": [segment.end_latlng.root[1]],
  'avg_power': [effort.average_watts],
  'temperature': [hourly.Variables(0).Values(effort.start_date_local.hour)],
  'wind_speed': [hourly.Variables(1).Values(effort.start_date_local.hour)],
  'wind_direction': [hourly.Variables(2).Values(effort.start_date_local.hour)],
  'time': [effort.moving_time]}
 
-effort_dtypes = {'athlete_weight': np.int8,
+effort_dtypes = {'id': np.int64,
+ 'athlete_weight': np.int8,
  'distance': np.int32,
  'avg_grade': np.float16,
  'max_grade': np.float16,
  'elevation_gain': np.int16,
+ "start_latitude": np.float16,
+ "start_longitude": np.float16,
+ "end_latitude": np.float16,
+ "end_longitude": np.float16,
  'avg_power': np.int16,
  'temperature': np.int8,
  'wind_speed': np.int8,
@@ -60,5 +71,5 @@ effort_df = pd.DataFrame(effort_dict)
 effort_df = effort_df.astype(effort_dtypes)
 print(effort_df)
 
-effort_df.to_parquet('parquet_test.parquet')
-#parquet
+file_path = Path('parquet_test.parquet')
+effort_df.to_parquet(file_path, engine='fastparquet')
