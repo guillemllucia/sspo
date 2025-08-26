@@ -1,0 +1,6 @@
+openmeteo_requests
+pandas
+stravalib
+numpy
+fastparquet
+pathlib
