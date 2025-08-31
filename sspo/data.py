@@ -7,6 +7,8 @@ import pandas as pd
 import openmeteo_requests
 from pathlib import Path
 import time # To add a small delay and be respectful to APIs
+import math
+from geopy.distance import geodesic
 
 # --- INITIALIZATION ---
 print("=============================================")
@@ -58,6 +60,17 @@ def collect_data(client: StravaClient, segment_list: list) -> pd.DataFrame:
 
     return data_df
 
+def get_direction(start_lat: float, start_lon: float, end_lat: float, end_lon: float) -> int:
+    """Calculates the direction (degrees) from a start to an end point (coordinates system)."""
+    lat1, lon1, lat2, lon2 = map(math.radians, [start_lat, start_lon, end_lat, end_lon])
+    print(lat1, lon1, lat2, lon2)
+    dLon = lon2 - lon1
+    x = math.sin(dLon) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon)
+    bearing = (math.degrees(math.atan2(x, y)) + 360) % 360
+
+    return int(round(bearing, 0))
+
 def effort_to_df(athlete: DetailedAthlete, segment: Segment, effort: BaseEffort) -> pd.DataFrame:
     """Converts a single Strava effort into a structured DataFrame row, including weather data."""
     openmeteo = openmeteo_requests.Client()
@@ -80,10 +93,8 @@ def effort_to_df(athlete: DetailedAthlete, segment: Segment, effort: BaseEffort)
     'avg_grade': [round(segment.average_grade, 1)],
     'max_grade': [round(segment.maximum_grade, 1)],
     'elevation_gain': [segment.total_elevation_gain],
-    "start_latitude": [segment.start_latlng.root[0]],
-    "start_longitude": [segment.start_latlng.root[1]],
-    "end_latitude": [segment.end_latlng.root[0]],
-    "end_longitude": [segment.end_latlng.root[1]],
+    "map_distance": [int(round(geodesic((segment.start_latlng.root[0], segment.start_latlng.root[1]), (segment.end_latlng.root[0], segment.end_latlng.root[1])).m, 0))],
+    "map_direction": [int(round(get_direction(segment.start_latlng.root[0], segment.start_latlng.root[1], segment.end_latlng.root[0], segment.end_latlng.root[1]), 0))],
     'avg_power': [effort.average_watts],
     'temperature': [hourly.Variables(0).Values(effort.start_date_local.hour)],
     'wind_speed': [hourly.Variables(1).Values(effort.start_date_local.hour)],
@@ -97,10 +108,8 @@ def effort_to_df(athlete: DetailedAthlete, segment: Segment, effort: BaseEffort)
     'avg_grade': np.float16,
     'max_grade': np.float16,
     'elevation_gain': np.int16,
-    "start_latitude": np.float16,
-    "start_longitude": np.float16,
-    "end_latitude": np.float16,
-    "end_longitude": np.float16,
+    'map_distance': np.int32,
+    'map_direction': np.int16,
     'avg_power': np.int16,
     'temperature': np.int8,
     'wind_speed': np.int8,
@@ -148,7 +157,6 @@ def store_to_database(athlete: DetailedAthlete, data: pd.DataFrame) -> None:
         data.to_parquet(file_path, engine='fastparquet')
 
     print(f"💾 Data successfully saved to '{file_path}'. Total efforts: {len(pd.read_parquet(file_path))}")
-
 
 if __name__ == "__main__":
 
