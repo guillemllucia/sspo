@@ -63,7 +63,6 @@ def collect_data(client: StravaClient, segment_list: list) -> pd.DataFrame:
 def get_direction(start_lat: float, start_lon: float, end_lat: float, end_lon: float) -> int:
     """Calculates the direction (degrees) from a start to an end point (coordinates system)."""
     lat1, lon1, lat2, lon2 = map(math.radians, [start_lat, start_lon, end_lat, end_lon])
-    print(lat1, lon1, lat2, lon2)
     dLon = lon2 - lon1
     x = math.sin(dLon) * math.cos(lat2)
     y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dLon)
