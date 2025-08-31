@@ -53,7 +53,7 @@ def collect_data(client: StravaClient, segment_list: list) -> pd.DataFrame:
                 time.sleep(0.5) # Small delay to be respectful to the weather API
 
         except Exception as e:
-            print(f"   - ❌ An error occurred while processing segment {segment_id}: {e}")
+            print(f"   - ❌ An error occurred while processing segment {segment_id}, effort {powered_effort.id}: {e}")
             continue
 
     return data_df
