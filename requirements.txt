@@ -24,3 +24,5 @@ lxml
 optuna
 bs4
 geopy
+google-cloud-storage
+fitparse
