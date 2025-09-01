@@ -3,9 +3,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import numpy as np
+from sspo.grid_search import get_best_model_filename
+from sspo.registry.load_model import load_xgb_reg
 
 app = FastAPI()
-xgb_reg = pickle.load(open('xgb_reg_24_54.pkl', 'rb'))
+best_model_name = get_best_model_filename()
+xgb_reg = load_xgb_reg(best_model_name)
 app.state.model = xgb_reg
 
 # Allowing all middleware is optional, but good practice for dev purposes
