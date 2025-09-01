@@ -21,3 +21,5 @@ fastapi
 scikit-learn
 tqdm
 optuna
+google-cloud-storage
+fitparse
