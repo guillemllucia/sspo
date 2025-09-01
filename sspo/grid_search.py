@@ -8,8 +8,11 @@ from sklearn.metrics import mean_squared_error
 import pickle
 import optuna
 #from sspo.data import ACCESS_TOKEN, SEGMENT_LIST, collect_data
-from sspo.model import save_xgb_reg, load_xgb_reg
+#from sspo.model import save_xgb_reg, load_xgb_reg
 #from stravalib import Client as StravaClient
+from sspo.registry.load_model import load_xgb_reg
+from sspo.registry.upload_model import save_xgb_reg
+from google.cloud import storage
 
 
 
@@ -56,25 +59,31 @@ def optimize_model(X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Data
     return (new_xgb_reg, new_rmse)
 
 
-def get_best_model_path() -> str:
+def get_best_model_filename() -> str:
     print("\n🔍 Searching for the current best model...")
-    directory = os.listdir(os.getcwd())
-    xgb_path = None
+    BUCKET_NAME = os.environ["BUCKET_NAME"]
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+    blobs = bucket.list_blobs(max_results=1000)
+    directory = []
+    for blob in blobs:
+        directory.append(blob.name)
+    xgb_filename = None
     metric = 1000
     for file in directory:
-        if file.startswith("xgb_reg_"):
+        if file.startswith("models/xgb_reg_"):
             splitted = file.split("_")
             new_metric = int(splitted[2]) + int(splitted[3].split(".")[0])/100
             if new_metric < metric:
-                xgb_path = file
+                xgb_filename = f"xgb_reg_{splitted[2]}_{splitted[3].split(".")[0]}"
                 metric = new_metric
 
-    if xgb_path:
-        print(f"✨ Found best current model: '{xgb_path}' with RMSE: {metric}")
+    if xgb_filename:
+        print(f"✨ Found best current model: '{xgb_filename}' with RMSE: {metric}")
     else:
         print("⚠️ No existing model found.")
 
-    return xgb_path
+    return xgb_filename
 
 
 def retrain_model() -> None:
@@ -91,20 +100,20 @@ def retrain_model() -> None:
 
     new_xgb_reg, new_rmse = optimize_model(X_train, X_test, y_train, y_test)
 
-    best_model_path = get_best_model_path()
-    if best_model_path:
-        current_xgb_reg = load_xgb_reg(best_model_path)
+    best_model_filename = get_best_model_filename()
+    if best_model_filename:
+        current_xgb_reg = load_xgb_reg(best_model_filename)
         current_xgb_reg.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=0)
         current_rmse = round(mean_squared_error(y_test.values, current_xgb_reg.predict(X_test))**0.5, 2)
         print(f"\n📈 Current Model RMSE: {current_rmse} vs. New Optimized Model RMSE: {new_rmse}")
         if new_rmse < current_rmse:
             print(f"🎉 New model is better! Saving new model...")
-            save_xgb_reg(new_xgb_reg, f"xgb_reg_{str(new_rmse).replace(".", "_")}.pkl")
+            save_xgb_reg(new_xgb_reg, f"xgb_reg_{str(new_rmse).replace(".", "_")}")
         else:
             print("👍 Current model is still the best. No new model will be saved.")
     else:
         print("\n✅ No existing model to compare against. Saving the first optimized model.")
-        save_xgb_reg(new_xgb_reg, f"xgb_reg_{str(new_rmse).replace(".", "_")}.pkl")
+        save_xgb_reg(new_xgb_reg, f"xgb_reg_{str(new_rmse).replace(".", "_")}")
 
 
 if __name__ == "__main__":

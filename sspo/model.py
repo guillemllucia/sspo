@@ -5,6 +5,7 @@ from pathlib import Path
 from sklearn.model_selection import train_test_split
 from xgboost import XGBRegressor
 from sklearn.metrics import mean_squared_error
+from sspo.registry.upload_model import save_xgb_reg
 import pickle
 
 def load_data(path: str) -> pd.DataFrame:
@@ -58,24 +59,6 @@ def predict_xgboost(xgb_reg: XGBRegressor, X_pred: pd.DataFrame) -> float:
     print(f"✅ Predicted time for the first row: {minutes:02d}:{seconds:02d} minutes")
 
     return y_pred
-
-def save_xgb_reg(xgb_reg: XGBRegressor, path: str) -> None:
-    """Saves the trained model to a file using pickle."""
-    print("\n--- 5. Saving Model ---")
-    file_path = Path(path)
-    pickle.dump(xgb_reg, open(file_path, "wb"))
-
-    print(f"💾 Model successfully saved to '{file_path}'")
-
-def load_xgb_reg(path: str) -> XGBRegressor:
-    """Saves the trained model to a file using pickle."""
-    print("\n--- Loading Model ---")
-    file_path = Path(path)
-    xgb_reg = pickle.load(open(file_path, 'rb'))
-
-    print(f"📎 Model successfully loaded from '{file_path}'")
-
-    return xgb_reg
 
 
 if __name__ == "__main__":
