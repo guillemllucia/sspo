@@ -23,5 +23,4 @@ tqdm
 lxml
 optuna
 bs4
-math
 geopy
