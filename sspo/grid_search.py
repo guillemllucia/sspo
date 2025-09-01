@@ -64,7 +64,7 @@ def get_best_model_filename() -> str:
     BUCKET_NAME = os.environ["BUCKET_NAME"]
     client = storage.Client()
     bucket = client.bucket(BUCKET_NAME)
-    blobs = bucket.list_blobs(max_results=5)
+    blobs = bucket.list_blobs(max_results=1000)
     directory = []
     for blob in blobs:
         directory.append(blob.name)
