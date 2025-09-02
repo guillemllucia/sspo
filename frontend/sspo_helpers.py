@@ -249,7 +249,7 @@ def display_leaderboard(segment_id, predicted_seconds, athlete_name, segment_dat
         display_df = display_df.drop(columns=['Time (s)'], errors='ignore')
         display_df.reset_index(drop=True, inplace=True)
         display_df['Rank'] = display_df.index + 1
-        
+
         def highlight_user(row):
             if "(Your Prediction)" in str(row['Athlete']):
                 return ['background-color: #FF4B4B; color: white'] * len(row)

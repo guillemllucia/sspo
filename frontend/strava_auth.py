@@ -10,6 +10,7 @@ class StravaAuth:
         self.redirect_uri = st.secrets.get("STRAVA_REDIRECT_URI", "http://localhost:8501")
         self.auth_url = "https://www.strava.com/oauth/authorize"
         self.token_url = "https://www.strava.com/oauth/token"
+        self.deauthorize_url = "https://www.strava.com/oauth/deauthorize"
 
     def get_authorization_url(self):
         params = {
@@ -51,8 +52,13 @@ class StravaAuth:
             return response.json()
         else:
             st.error("Could not refresh token. Please log in again.")
-            # Clear session state if refresh fails
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
             return None
+
+    def deauthorize(self, access_token):
+        """Revokes the application's access on Strava's side."""
+        headers = {'Authorization': f'Bearer {access_token}'}
+        response = requests.post(self.deauthorize_url, headers=headers)
+        return response.status_code == 200

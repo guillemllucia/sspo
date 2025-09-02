@@ -11,6 +11,7 @@ from datetime import datetime, date, time, timedelta
 import math
 import time as time_sleep # Import the time module for sleeping
 from bs4 import BeautifulSoup
+from pathlib import Path
 
 # --- CONFIGURATION ---
 st.set_page_config(
@@ -215,38 +216,61 @@ def parse_time_to_seconds(time_str):
     return total_seconds if total_seconds > 0 else None
 
 def show_main_app():
-    st.markdown("""<style>.main .block-container {padding-top: 1rem; padding-bottom: 1rem;} [data-testid="stSidebar"] {width: 400px !important;}</style>""", unsafe_allow_html=True)
+    st.markdown("""<style>.main .block-container {padding-top: 1rem; padding-bottom: 1rem;} [data-testid="stSidebar"] {width: 460px !important;} [data-testid="stSidebarCollapseButton"] {display: none} </style>""", unsafe_allow_html=True)
     athlete = st.session_state.athlete_info
     with st.sidebar:
-        st.image(athlete["profile"], width=60)
-        with st.popover(f"Welcome, {athlete['firstname']}!", use_container_width=True):
-             if st.button("Logout", use_container_width=True):
-                for key in list(st.session_state.keys()):
-                    del st.session_state[key]
-                st.switch_page("app.py")
 
-        st.header("Pacing Optimizer")
-        st.markdown("Enter the segment, check your weight, and input power to get a time estimate.")
+        col1, col2 = st.columns([1, 3])
+        with col1:
+             st.image(athlete["profile"], width=100)
+        with col2:
+            with st.popover(f"🚴 Welcome, {athlete['firstname']}!", use_container_width=True):
+                 if st.button("Logout", use_container_width=True):
+                    for key in list(st.session_state.keys()):
+                        del st.session_state[key]
+                    st.switch_page("app.py")
+            if st.button("🚀 Technical Showcase", use_container_width=True):
+                st.switch_page("pages/1_Technical_Showcase.py")
+
         st.markdown("---")
-        if st.button("🚀 View Technical Showcase", use_container_width=True):
-            st.switch_page("pages/1_Technical_Showcase.py")
 
-        st.header("1. Your Details & Segment")
-        segment_url = st.text_input("Strava Segment URL or ID:", value="https://www.strava.com/segments/13260861")
-        default_weight = int(athlete.get('weight', 75) or 75)
-        weight = st.number_input("Your Weight (kg):", min_value=40, max_value=150, value=default_weight, step=1)
-        st.header("2. Your Goal & Ride Time")
+        col_seg, col_weight = st.columns(2)
+        with col_seg:
+            segment_url = st.text_input("Strava Segment URL or ID:", value="https://www.strava.com/segments/13260861")
+        with col_weight:
+            default_weight = int(athlete.get('weight', 75) or 75)
+            weight = st.number_input("Your Weight (kg):", min_value=40, max_value=150, value=default_weight, step=1)
+
         desired_power = st.number_input("Target Power (Watts):", min_value=0, max_value=2000, value=250, step=1)
-        ride_date = st.date_input("Date of Ride:", date.today(), max_value=date.today() + timedelta(days=14))
-        ride_time = st.time_input("Time of Ride (24h):", datetime.now().time())
+        entry_speed = st.slider("Entry Speed (km/h):", min_value=0.1, max_value=50.0, value=20.0, step=0.1)
+
+        col_date, col_time = st.columns(2)
+        with col_date:
+            st.date_input("Date of Ride:", key="ride_date", max_value=date.today() + timedelta(days=14))
+        with col_time:
+            st.time_input("Time of Ride (24h):", key="ride_time")
+
         st.markdown("---")
         if st.button("🚀 Generate Time Estimate", type="primary", use_container_width=True):
             if segment_url:
                 st.cache_data.clear()
-                st.session_state.prediction_inputs = {"segment": segment_url, "weight": weight, "power": desired_power, "ride_datetime": datetime.combine(ride_date, ride_time)}
+                st.session_state.prediction_inputs = {
+                    "segment": segment_url,
+                    "weight": weight,
+                    "power": desired_power,
+                    "ride_datetime": datetime.combine(st.session_state.ride_date, st.session_state.ride_time),
+                    "entry_speed": entry_speed
+                }
                 st.rerun()
             else:
                 st.warning("Please enter a segment URL or ID.")
+
+        st.markdown("---")
+        script_dir = Path(__file__).parent.parent
+        logo_path = script_dir / "api_logo_cptblWith_strava_stack_orange.png"
+        if logo_path.is_file():
+            st.image(str(logo_path), width=150)
+
     st.title("Pacing Optimizer Dashboard")
     if 'prediction_inputs' in st.session_state:
         show_results_page(st.session_state.prediction_inputs)

@@ -78,6 +78,7 @@ with col_next:
             st.session_state.demo_step = 1
             st.switch_page("pages/0_Main_Dashboard.py")
 
+
 # --- Step-by-step logic ---
 if st.session_state.demo_step == 1:
     st.header("Step 1: Data Collection & User Input")
