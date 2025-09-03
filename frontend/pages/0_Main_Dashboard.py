@@ -23,6 +23,17 @@ st.set_page_config(
 # --- Hide sidebar navigation and header anchor links ---
 st.markdown("""
     <style>
+        .st-emotion-cache-arp25b a {
+    color: rgb(255, 75, 75);
+    text-decoration: none;
+}
+        a {
+            color: orange
+        }
+        .bestlink {
+            text-color: orange;
+
+        }
         [data-testid="stSidebarNav"] {
             display: none;
         }
@@ -186,8 +197,8 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
 def get_wind_description(segment_bearing, wind_direction):
     diff = abs(segment_bearing - wind_direction)
     angle = min(diff, 360 - diff)
-    if angle <= 45: return "Tailwind"
-    elif angle >= 135: return "Headwind"
+    if angle <= 45: return "Headwind"
+    elif angle >= 135: return "Tailwind"
     else: return "Crosswind"
 
 def degrees_to_cardinal(d):
@@ -216,16 +227,17 @@ def parse_time_to_seconds(time_str):
     return total_seconds if total_seconds > 0 else None
 
 def show_main_app():
-    st.markdown("""<style>.main .block-container {padding-top: 1rem; padding-bottom: 1rem;} [data-testid="stSidebar"] {width: 460px !important;} [data-testid="stSidebarCollapseButton"] {display: none} </style>""", unsafe_allow_html=True)
+    st.markdown("""<style>.main .block-container {padding-top: 1rem; padding-bottom: 1rem;} [data-testid="stSidebar"] {width: 460px !important;} [data-testid="stSidebarCollapseButton"] {display: none;} </style>""", unsafe_allow_html=True)
     athlete = st.session_state.athlete_info
     with st.sidebar:
 
         col1, col2 = st.columns([1, 3])
         with col1:
-             st.image(athlete["profile"], width=100)
+            st.image(athlete["profile"], width=100)
         with col2:
             with st.popover(f"🚴 Welcome, {athlete['firstname']}!", use_container_width=True):
-                 if st.button("Logout", use_container_width=True):
+                st.link_button("Strava Profile", f"https://www.strava.com/athletes/{athlete['id']}", use_container_width=True)
+                if st.button("Logout", use_container_width=True):
                     for key in list(st.session_state.keys()):
                         del st.session_state[key]
                     st.switch_page("app.py")
@@ -250,7 +262,7 @@ def show_main_app():
         with col_time:
             st.time_input("Time of Ride (24h):", key="ride_time")
 
-        st.markdown("---")
+        st.markdown("")
         if st.button("🚀 Generate Time Estimate", type="primary", use_container_width=True):
             if segment_url:
                 st.cache_data.clear()
@@ -265,13 +277,15 @@ def show_main_app():
             else:
                 st.warning("Please enter a segment URL or ID.")
 
-        st.markdown("---")
-        script_dir = Path(__file__).parent.parent
-        logo_path = script_dir / "api_logo_cptblWith_strava_stack_orange.png"
-        if logo_path.is_file():
-            st.image(str(logo_path), width=150)
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
 
-    st.title("Pacing Optimizer Dashboard")
+        script_dir = Path(__file__).parent.parent
+        logo_path = script_dir / "api_logo_cptblWith_strava_horiz_white.png"
+        if logo_path.is_file():
+            st.image(str(logo_path), width=250, )
+
     if 'prediction_inputs' in st.session_state:
         show_results_page(st.session_state.prediction_inputs)
     else:
@@ -281,9 +295,11 @@ def show_results_page(inputs):
     # This is the full, complete dashboard logic
     segment_id = inputs['segment'].split('/')[-1] if '/' in inputs['segment'] else inputs['segment']
 
-    with st.spinner("Fetching data and calculating your plan..."):
+    with st.spinner('Fetching info, generating dashboard...'):
         segment_data = get_segment_data(segment_id, st.session_state.access_token)
         if not segment_data: return
+
+        st.markdown(f"<h1 style='color: #FF4B4B;'>Pacing Plan for: <span class='bestlink'><a href='https://www.strava.com/segments/{segment_id}'>{segment_data['name']}</a></span></>", unsafe_allow_html=True)
 
         map_data = get_elevation_data(segment_data.get("map_data").copy())
         if map_data is None: return
@@ -321,149 +337,143 @@ def show_results_page(inputs):
         wind_desc = get_wind_description(segment_bearing, weather_data['wind_direction'])
         wind_cardinal = degrees_to_cardinal(weather_data['wind_direction'])
 
-        with st.expander("API Parameters Sent for Prediction"):
-            st.json(api_params)
-
-        st.subheader(f"Segment: [{segment_data['name']}](https://www.strava.com/segments/{segment_id})")
-
-        main_col, map_col = st.columns([1, 1])
+        main_col, map_col = st.columns([1, 2])
 
         with main_col:
-            st.subheader("📊 Prediction & Conditions")
-            with st.container(border=True):
-                pred_col, stats_col = st.columns([2,1.5])
+            with st.container(border=True, height=635):
+                st.subheader("📊 Prediction & Conditions")
+                st.markdown("")
+                with st.container(border=True):
+                    st.markdown("<h3 style='text-align: center; color: #FF4B4B; padding-top: 0; margin-bottom: 0;'>Predicted Time</>", unsafe_allow_html=True)
+                    st.markdown(f"<h1 style='text-align: center; color: #FF4B4B; padding-top: 0; margin-bottom: 0;'>{predicted_time_str}</>", unsafe_allow_html=True)
+                st.markdown("")
+                pred_col, stats_col = st.columns([1,1])
                 with pred_col:
-                    st.markdown(f"<h3 style='text-align: center;'>Predicted Time</h3>", unsafe_allow_html=True)
-                    st.markdown(f"<h1 style='text-align: center; color: #FF4B4B;'>{predicted_time_str}</h1>", unsafe_allow_html=True)
                     st.metric("Average Speed", f"{avg_speed_kmh:.1f} km/h", help="Based on the predicted time and segment distance.")
-                    st.info(f"Estimate for an average power of {inputs['power']} W.")
+                    st.metric("Elevation Gain", f"{segment_data['elevation_gain']:.0f} m")
+                    st.metric("Wind Speed", f"{weather_data['wind_speed']:.1f} km/h")
 
                 with stats_col:
                     avg_grade = (map_data['elevation'].iloc[-1] - map_data['elevation'].iloc[0]) / segment_data['distance'] * 100 if segment_data['distance'] > 0 else 0
                     st.metric("Distance", f"{segment_data['distance']/1000:.2f} km")
-                    st.metric("Elevation Gain", f"{segment_data['elevation_gain']:.0f} m")
                     st.metric("Avg. Grade", f"{avg_grade:.1f}%")
-                    predicted_rank_placeholder = st.empty()
+                    st.metric("Temperature", f"{weather_data['temperature']}°C")
 
-                st.markdown("---")
-                weather_cols = st.columns(3)
-                weather_cols[0].metric("Temperature", f"{weather_data['temperature']}°C")
-                weather_cols[1].metric("Wind Direction", f"{wind_cardinal} - {wind_desc}")
-                weather_cols[2].metric("Wind Speed", f"{weather_data['wind_speed']:.1f} km/h")
+                st.metric("Wind Direction", f"{wind_cardinal} - {wind_desc}")
 
 
         with map_col:
-            st.subheader("🗺️ 3D Segment Map")
-            if "MAPBOX_API_KEY" not in st.secrets:
-                st.error("Mapbox API key not found.")
-                return
+            with st.container(border=True, height=635):
+                st.subheader("🗺️ 3D Segment Map")
+                if "MAPBOX_API_KEY" not in st.secrets:
+                    st.error("Mapbox API key not found.")
+                    return
 
-            view_state = pdk.ViewState(latitude=map_data["lat"].mean(), longitude=map_data["lon"].mean(), zoom=13.5, pitch=60, bearing=0)
+                view_state = pdk.ViewState(latitude=map_data["lat"].mean(), longitude=map_data["lon"].mean(), zoom=13.5, pitch=60, bearing=0)
 
-            line_layer = pdk.Layer("LineLayer", data=line_segments_df, get_source_position="[lon, lat, smoothed_elevation]", get_target_position="[lon_next, lat_next, elevation_next]", get_color="color", get_width=5, pickable=True)
-            vertical_line_layer = pdk.Layer("LineLayer", data=map_data, get_source_position="[lon, lat, 0]", get_target_position="[lon, lat, smoothed_elevation]", get_color="color", get_width=1)
-            start_point, end_point = map_data.iloc[[0]].copy(), map_data.iloc[[-1]].copy()
-            start_point.loc[:, 'icon_data'] = [ {"url": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-start.png", "width": 128, "height": 128, "anchorY": 128} ]
-            end_point.loc[:, 'icon_data'] = [ {"url": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/website/icon-finish.png", "width": 128, "height": 128, "anchorY": 128} ]
-            icon_layer = pdk.Layer("IconLayer", data=pd.concat([start_point, end_point]), get_icon="icon_data", get_position="[lon, lat, elevation]", get_size=4, size_scale=15)
-            wind_arrow_data = pd.DataFrame([{"lon": map_data['lon'].mean(), "lat": map_data['lat'].mean(), "icon_data": {"url": "https://raw.githubusercontent.com/ajduberstein/wind-js/master/arrow.png", "width": 512, "height": 512, "anchorY": 256}, "angle": 450 - weather_data['wind_direction']}])
-            wind_arrow_layer = pdk.Layer("IconLayer", data=wind_arrow_data, get_icon="icon_data", get_position="[lon, lat]", get_size=10, size_scale=30, get_angle="angle")
+                line_layer = pdk.Layer("LineLayer", data=line_segments_df, get_source_position="[lon, lat, smoothed_elevation]", get_target_position="[lon_next, lat_next, elevation_next]", get_color="color", get_width=5, pickable=True)
+                vertical_line_layer = pdk.Layer("LineLayer", data=map_data, get_source_position="[lon, lat, 0]", get_target_position="[lon, lat, smoothed_elevation]", get_color="color", get_width=1)
 
-            st.pydeck_chart(pdk.Deck(map_style="mapbox://styles/mapbox/dark-v10", layers=[line_layer, vertical_line_layer, icon_layer, wind_arrow_layer], initial_view_state=view_state, tooltip={"html": "<b>Gradient:</b> {gradient:.1f}%"}))
+                st.pydeck_chart(pdk.Deck(map_style="mapbox://styles/mapbox/dark-v10", layers=[line_layer, vertical_line_layer], initial_view_state=view_state))
 
-            st.markdown("""
-                **Effort Scale:**
-                <span style="color:#0000FF; font-weight:bold;">● Recovery</span> |
-                <span style="color:#00FF00; font-weight:bold;">● Steady</span> |
-                <span style="color:#FF8000; font-weight:bold;">● Moderate</span> |
-                <span style="color:#FF0000; font-weight:bold;">● Hard</span> |
-                <span style="color:#CC0000; font-weight:bold;">● Max</span>
-            """, unsafe_allow_html=True)
+                st.markdown("""
+                    **Effort Scale:**
+                    <span style="color:#0000FF; font-weight:bold;">● 10%</span> |
+                    <span style="color:#00FF00; font-weight:bold;">● 30%</span> |
+                    <span style="color:#FF8000; font-weight:bold;">● 50%</span> |
+                    <span style="color:#FF0000; font-weight:bold;">● 80%</span> |
+                    <span style="color:#CC0000; font-weight:bold;">● 100%</span>
+                """, unsafe_allow_html=True)
 
-        st.markdown("---")
-        st.subheader("📈 Variable Power & Elevation Profile")
-        fig = make_subplots(specs=[[{"secondary_y": True}]])
-        fig.add_trace(go.Scatter(x=map_data['cumulative_distance'] / 1000, y=map_data['smoothed_elevation'], name="Elevation", fill='tozeroy', line=dict(color='grey'), customdata=np.stack((line_segments_df['gradient'],), axis=-1), hovertemplate="<b>Distance:</b> %{x:.2f} km<br><b>Elevation:</b> %{y:.1f} m<br><b>Grade:</b> %{customdata[0]:.1f}%<extra></extra>"), secondary_y=False)
-        fig.add_trace(go.Scatter(x=line_segments_df['cumulative_distance'] / 1000, y=variable_power, name="Power Plan", line=dict(color='red'), hovertemplate="<b>Power:</b> %{y:.0f} W<extra></extra>"), secondary_y=True)
-        fig.update_layout(title_text="Pacing Plan vs. Elevation Profile", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), hovermode="x unified")
-        fig.update_xaxes(title_text="Distance (km)")
-        fig.update_yaxes(title_text="Elevation (m)", secondary_y=False)
-        fig.update_yaxes(title_text="Power (W)", secondary_y=True)
-        st.plotly_chart(fig, use_container_width=True)
+        power_col, lead_col = st.columns([1, 1])
+        with power_col:
+            with st.container(border=True, height=580):
+                st.subheader("📈 Variable Power & Elevation Profile")
+                st.markdown("")
+                fig = make_subplots(specs=[[{"secondary_y": True}]])
+                fig.add_trace(go.Scatter(x=map_data['cumulative_distance'] / 1000, y=map_data['smoothed_elevation'], name="Elevation", fill='tozeroy', line=dict(color='grey'), customdata=np.stack((line_segments_df['gradient'],), axis=-1), hovertemplate="<b>Distance:</b> %{x:.2f} km<br><b>Elevation:</b> %{y:.1f} m<br><b>Grade:</b> %{customdata[0]:.1f}%<extra></extra>"), secondary_y=False)
+                fig.add_trace(go.Scatter(x=line_segments_df['cumulative_distance'] / 1000, y=variable_power, name="Power Plan", line=dict(color='red'), hovertemplate="<b>Power:</b> %{y:.0f} W<extra></extra>"), secondary_y=True)
+                fig.update_layout(title_text="Pacing Plan vs. Elevation Profile", legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1), hovermode="x unified")
+                fig.update_xaxes(title_text="Distance (km)")
+                fig.update_yaxes(title_text="Elevation (m)", secondary_y=False)
+                fig.update_yaxes(title_text="Power (W)", secondary_y=True)
+                st.plotly_chart(fig, use_container_width=True)
 
-        # --- LEADERBOARD SECTION ---
-        st.markdown("---")
-        st.subheader("🏆 Segment Leaderboard Comparison")
+        with lead_col:
+            with st.container(border=True, height=580):
 
-        leaderboard_df = None # Initialize to handle potential errors
-        try:
-            response = requests.get(f"https://www.strava.com/segments/{segment_id}")
-            response.raise_for_status()
-            soup = BeautifulSoup(response.content, "html.parser")
+                st.subheader("🏆 Segment Leaderboard Comparison")
 
-            table = soup.find("table")
-            if table:
-                raw_df = pd.read_html(table.prettify())[0]
+                st.markdown("")
 
-                # Robustly select and rename columns by position
-                if raw_df.shape[1] >= 4:
-                    leaderboard_df = raw_df.iloc[:, [0, 2, 3, -1]].copy()
-                    leaderboard_df.columns = ['Rank', 'Athlete', 'Date', 'Time']
+                leaderboard_df = None
+                try:
+                    response = requests.get(f"https://www.strava.com/segments/{segment_id}")
+                    response.raise_for_status()
+                    soup = BeautifulSoup(response.content, "html.parser")
 
-                    leaderboard_df['Time (s)'] = leaderboard_df['Time'].apply(parse_time_to_seconds)
-                    leaderboard_df.dropna(subset=['Time (s)'], inplace=True)
-                    leaderboard_df['Time (s)'] = leaderboard_df['Time (s)'].astype(int)
+                    table = soup.find("table")
+                    if table:
+                        raw_df = pd.read_html(table.prettify())[0]
+
+                        if raw_df.shape[1] >= 4:
+                            leaderboard_df = raw_df.iloc[:, [0, 1, 3, -1]].copy()
+                            leaderboard_df.columns = ['Rank', 'Athlete', 'Power', 'Time']
+
+                            leaderboard_df['Time (s)'] = leaderboard_df['Time'].apply(parse_time_to_seconds)
+                            leaderboard_df.dropna(subset=['Time (s)'], inplace=True)
+                            leaderboard_df['Time (s)'] = leaderboard_df['Time (s)'].astype(int)
+                        else:
+                            st.warning("Could not parse the leaderboard structure as expected.")
+                            leaderboard_df = None
+                    else:
+                        st.info("Could not find a leaderboard table on the segment page.")
+                except Exception as e:
+                    st.error(f"An error occurred while scraping the leaderboard: {e}")
+
+
+                if leaderboard_df is not None and not leaderboard_df.empty:
+                    predicted_rank = leaderboard_df[leaderboard_df['Time (s)'] < predicted_seconds].shape[0] + 1
+
+                    if predicted_rank <= 10:
+                        st.warning(f"🎯 With a power average of {inputs['power']} W, you would become Top {predicted_rank} for this segment.")
+                        user_effort = pd.DataFrame([{
+                            "Rank": "★",
+                            "Athlete": f"{st.session_state.athlete_info['firstname']} (Your Prediction)",
+                            "Time": predicted_time_str,
+                            "Time (s)": predicted_seconds,
+                            "Power": f"{inputs['power']} W"
+                        }])
+                        display_df = pd.concat([leaderboard_df, user_effort]).sort_values(by="Time (s)").head(10)
+                    else:
+                        display_df = leaderboard_df.head(10)
+
+                    display_df = display_df.drop(columns=['Time (s)'], errors='ignore')
+                    display_df.reset_index(drop=True, inplace=True)
+                    display_df['Rank'] = display_df.index + 1
+
+                    def highlight_user(row):
+                        if "(Your Prediction)" in str(row['Athlete']):
+                            return ['background-color: #FF4B4B; color: white'] * len(row)
+                        return [''] * len(row)
+
+                    if predicted_rank > 10 and len(leaderboard_df) >= 10:
+                        time_to_beat = leaderboard_df.iloc[9]['Time (s)']
+                        power_for_top_10 = find_power_for_target_time(time_to_beat, segment_data, map_data, line_segments_df, weather_data, inputs)
+                        if power_for_top_10:
+                            power_diff = power_for_top_10 - inputs['power']
+                            st.warning(f"🎯 To break into the Top 10, you would need to hold an average of **{power_for_top_10} W** (+{power_diff} W).")
+                        else:
+                            st.info("Could not calculate the power required for a Top 10 finish.")
+
+                    st.dataframe(
+                        display_df[['Rank', 'Athlete', 'Time', 'Power']].style.apply(highlight_user, axis=1),
+                        use_container_width=True,
+                        hide_index=True
+                    )
+
                 else:
-                    st.warning("Could not parse the leaderboard structure as expected.")
-                    leaderboard_df = None
-            else:
-                st.info("Could not find a leaderboard table on the segment page.")
-        except Exception as e:
-            st.error(f"An error occurred while scraping the leaderboard: {e}")
-
-
-        if leaderboard_df is not None and not leaderboard_df.empty:
-            predicted_rank = leaderboard_df[leaderboard_df['Time (s)'] < predicted_seconds].shape[0] + 1
-            predicted_rank_placeholder.metric("Predicted Rank", f"~{predicted_rank}", help="Estimated rank based on the public leaderboard.")
-
-            if predicted_rank <= 10:
-                user_effort = pd.DataFrame([{
-                    "Rank": "★",
-                    "Athlete": f"{st.session_state.athlete_info['firstname']} (Your Prediction)",
-                    "Time": predicted_time_str,
-                    "Time (s)": predicted_seconds,
-                    "Date": "Forecast"
-                }])
-                display_df = pd.concat([leaderboard_df, user_effort]).sort_values(by="Time (s)").head(10)
-            else:
-                display_df = leaderboard_df.head(10)
-
-            display_df = display_df.drop(columns=['Time (s)'], errors='ignore')
-            display_df.reset_index(drop=True, inplace=True)
-            display_df['Rank'] = display_df.index + 1
-
-            def highlight_user(row):
-                if "(Your Prediction)" in str(row['Athlete']):
-                    return ['background-color: #FF4B4B; color: white'] * len(row)
-                return [''] * len(row)
-
-            st.dataframe(
-                display_df[['Rank', 'Athlete', 'Time', 'Date']].style.apply(highlight_user, axis=1),
-                use_container_width=True,
-                hide_index=True
-            )
-
-            if predicted_rank > 10 and len(leaderboard_df) >= 10:
-                time_to_beat = leaderboard_df.iloc[9]['Time (s)']
-                power_for_top_10 = find_power_for_target_time(time_to_beat, segment_data, map_data, line_segments_df, weather_data, inputs)
-                if power_for_top_10:
-                    power_diff = power_for_top_10 - inputs['power']
-                    st.warning(f"🎯 To break into the Top 10, you would need to hold an average of **{power_for_top_10} W** (+{power_diff} W).")
-                else:
-                    st.info("Could not calculate the power required for a Top 10 finish.")
-
-        else:
-            st.info("Could not display leaderboard at this time.")
+                    st.info("Could not display leaderboard at this time.")
 
 if __name__ == "__main__":
     show_main_app()
