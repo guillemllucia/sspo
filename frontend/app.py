@@ -84,11 +84,13 @@ def show_authentication_page(auth):
     <div class="glass-container">
         <h2 style='text-align: center;'>🚴‍♂️ Strava Pacing Optimizer</h2>
         <h4 style='text-align: center; font-weight: 400;'>Your personal pacing strategist for Strava.</h4>
-        {attribution_html}
         <hr>
         <div style="text-align: center;">
             {connect_button_html}
         </div>
+            <h>
+            {attribution_html}
+
     </div>
     """
 
