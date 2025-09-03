@@ -180,11 +180,11 @@ def haversine_np(lon1, lat1, lon2, lat2):
     return 6371 * 2 * np.arcsin(np.sqrt(a)) * 1000
 
 def get_color_from_gradient(gradient):
-    if gradient > 8: return [204, 0, 0, 200]
-    elif gradient > 5: return [255, 0, 0, 200]
-    elif gradient > 2: return [255, 128, 0, 200]
-    elif gradient > -2: return [0, 255, 0, 200]
-    else: return [0, 0, 255, 200]
+    if gradient > 9: return [15, 15, 15, 200]
+    elif gradient > 6: return [255, 25, 0, 200]
+    elif gradient > 3: return [0, 130, 255, 200]
+    elif gradient > 0: return [0, 255, 0, 200]
+    else: return [230, 230, 230, 200]
 
 def calculate_bearing(lat1, lon1, lat2, lon2):
     lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
@@ -248,13 +248,13 @@ def show_main_app():
 
         col_seg, col_weight = st.columns(2)
         with col_seg:
-            segment_url = st.text_input("Strava Segment URL or ID:", value="https://www.strava.com/segments/13260861")
+            segment_url = st.text_input("Strava Segment URL or ID:", value=13260861)
         with col_weight:
             default_weight = int(athlete.get('weight', 75) or 75)
             weight = st.number_input("Your Weight (kg):", min_value=40, max_value=150, value=default_weight, step=1)
 
         desired_power = st.number_input("Target Power (Watts):", min_value=0, max_value=2000, value=250, step=1)
-        entry_speed = st.slider("Entry Speed (km/h):", min_value=0.1, max_value=50.0, value=20.0, step=0.1)
+        entry_speed = st.slider("Entry Speed (km/h):", min_value=1, max_value=50, value=20, step=1)
 
         col_date, col_time = st.columns(2)
         with col_date:
@@ -289,13 +289,23 @@ def show_main_app():
     if 'prediction_inputs' in st.session_state:
         show_results_page(st.session_state.prediction_inputs)
     else:
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
+        st.markdown("")
         st.info("⬅️ Enter your details in the sidebar to generate a pacing plan.")
 
 def show_results_page(inputs):
     # This is the full, complete dashboard logic
     segment_id = inputs['segment'].split('/')[-1] if '/' in inputs['segment'] else inputs['segment']
 
-    with st.spinner('Fetching info, generating dashboard...'):
+    with st.spinner('le wawa thinking...'):
         segment_data = get_segment_data(segment_id, st.session_state.access_token)
         if not segment_data: return
 
@@ -372,17 +382,17 @@ def show_results_page(inputs):
                 view_state = pdk.ViewState(latitude=map_data["lat"].mean(), longitude=map_data["lon"].mean(), zoom=13.5, pitch=60, bearing=0)
 
                 line_layer = pdk.Layer("LineLayer", data=line_segments_df, get_source_position="[lon, lat, smoothed_elevation]", get_target_position="[lon_next, lat_next, elevation_next]", get_color="color", get_width=5, pickable=True)
-                vertical_line_layer = pdk.Layer("LineLayer", data=map_data, get_source_position="[lon, lat, 0]", get_target_position="[lon, lat, smoothed_elevation]", get_color="color", get_width=1)
+                vertical_line_layer = pdk.Layer("LineLayer", data=line_segments_df, get_source_position="[lon, lat, 0]", get_target_position="[lon, lat, smoothed_elevation]", get_color=[100, 100, 100, 200], get_width=1)
 
                 st.pydeck_chart(pdk.Deck(map_style="mapbox://styles/mapbox/dark-v10", layers=[line_layer, vertical_line_layer], initial_view_state=view_state))
 
                 st.markdown("""
-                    **Effort Scale:**
-                    <span style="color:#0000FF; font-weight:bold;">● 10%</span> |
-                    <span style="color:#00FF00; font-weight:bold;">● 30%</span> |
-                    <span style="color:#FF8000; font-weight:bold;">● 50%</span> |
-                    <span style="color:#FF0000; font-weight:bold;">● 80%</span> |
-                    <span style="color:#CC0000; font-weight:bold;">● 100%</span>
+                    **Gradient Scale:**
+                    <span style="color:#BFBFBF; font-weight:bold;">● <0%</span> |
+                    <span style="color:#00CC00; font-weight:bold;">● 0-3%</span> |
+                    <span style="color:#0099FF; font-weight:bold;">● 3-6%</span> |
+                    <span style="color:#FF3300; font-weight:bold;">● 6-9%</span> |
+                    <span style="color:#4D4D4D; font-weight:bold;">● >9%</span>
                 """, unsafe_allow_html=True)
 
         power_col, lead_col = st.columns([1, 1])
@@ -415,6 +425,7 @@ def show_results_page(inputs):
                     table = soup.find("table")
                     if table:
                         raw_df = pd.read_html(table.prettify())[0]
+                        raw_df["Power"] = raw_df["Power"].str.replace("  Power Meter", "")
 
                         if raw_df.shape[1] >= 4:
                             leaderboard_df = raw_df.iloc[:, [0, 1, 3, -1]].copy()
@@ -436,7 +447,7 @@ def show_results_page(inputs):
                     predicted_rank = leaderboard_df[leaderboard_df['Time (s)'] < predicted_seconds].shape[0] + 1
 
                     if predicted_rank <= 10:
-                        st.warning(f"🎯 With a power average of {inputs['power']} W, you would become Top {predicted_rank} for this segment.")
+                        st.info(f"🎯 With a power average of {inputs['power']} W, you would become Top {predicted_rank} for this segment.")
                         user_effort = pd.DataFrame([{
                             "Rank": "★",
                             "Athlete": f"{st.session_state.athlete_info['firstname']} (Your Prediction)",
@@ -464,7 +475,7 @@ def show_results_page(inputs):
                             power_diff = power_for_top_10 - inputs['power']
                             st.warning(f"🎯 To break into the Top 10, you would need to hold an average of **{power_for_top_10} W** (+{power_diff} W).")
                         else:
-                            st.info("Could not calculate the power required for a Top 10 finish.")
+                            st.warning(f"🎯 You would not break into the Top 10 with a power average of {inputs['power']} W.")
 
                     st.dataframe(
                         display_df[['Rank', 'Athlete', 'Time', 'Power']].style.apply(highlight_user, axis=1),
