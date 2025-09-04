@@ -360,16 +360,16 @@ def show_results_page(inputs):
                 pred_col, stats_col = st.columns([1,1])
                 with pred_col:
                     st.metric("Average Speed", f"{avg_speed_kmh:.1f} km/h", help="Based on the predicted time and segment distance.")
-                    st.metric("Elevation Gain", f"{segment_data['elevation_gain']:.0f} m")
-                    st.metric("Wind Speed", f"{weather_data['wind_speed']:.1f} km/h")
+                    st.metric("Elevation Gain", f"{segment_data['elevation_gain']:.0f} m", help="Based on the predicted time and segment distance.")
+                    st.metric("Wind Speed", f"{weather_data['wind_speed']:.1f} km/h", help="Based on the predicted time and segment distance.")
 
                 with stats_col:
                     avg_grade = (map_data['elevation'].iloc[-1] - map_data['elevation'].iloc[0]) / segment_data['distance'] * 100 if segment_data['distance'] > 0 else 0
-                    st.metric("Distance", f"{segment_data['distance']/1000:.2f} km")
-                    st.metric("Avg. Grade", f"{avg_grade:.1f}%")
-                    st.metric("Temperature", f"{weather_data['temperature']}°C")
+                    st.metric("Distance", f"{segment_data['distance']/1000:.2f} km", help="Based on the predicted time and segment distance.")
+                    st.metric("Avg. Grade", f"{avg_grade:.1f}%", help="Based on the predicted time and segment distance.")
+                    st.metric("Temperature", f"{weather_data['temperature']}°C", help="Based on the predicted time and segment distance.")
 
-                st.metric("Wind Direction", f"{wind_cardinal} - {wind_desc}")
+                st.metric("Wind Direction", f"{wind_cardinal} - {wind_desc}", help="Headwind - Works against you. Tailwind - Works for you. Crosswind - Pushes you sideways.")
 
 
         with map_col:
@@ -395,7 +395,7 @@ def show_results_page(inputs):
                     <span style="color:#4D4D4D; font-weight:bold;">● >9%</span>
                 """, unsafe_allow_html=True)
 
-        power_col, lead_col = st.columns([1, 1])
+        power_col, lead_col = st.columns([1.5, 1])
         with power_col:
             with st.container(border=True, height=580):
                 st.subheader("📈 Variable Power & Elevation Profile")
@@ -447,7 +447,7 @@ def show_results_page(inputs):
                     predicted_rank = leaderboard_df[leaderboard_df['Time (s)'] < predicted_seconds].shape[0] + 1
 
                     if predicted_rank <= 10:
-                        st.info(f"🎯 With a power average of {inputs['power']} W, you would become Top {predicted_rank} for this segment.")
+                        st.info(f"🎯 You would become Top {predicted_rank} with a power average of {inputs['power']} W.")
                         user_effort = pd.DataFrame([{
                             "Rank": "★",
                             "Athlete": f"{st.session_state.athlete_info['firstname']} (Your Prediction)",
@@ -473,7 +473,7 @@ def show_results_page(inputs):
                         power_for_top_10 = find_power_for_target_time(time_to_beat, segment_data, map_data, line_segments_df, weather_data, inputs)
                         if power_for_top_10:
                             power_diff = power_for_top_10 - inputs['power']
-                            st.warning(f"🎯 To break into the Top 10, you would need to hold an average of **{power_for_top_10} W** (+{power_diff} W).")
+                            st.warning(f"🎯 Break into the Top 10 with an average of **{power_for_top_10} W** (+{power_diff} W).")
                         else:
                             st.warning(f"🎯 You would not break into the Top 10 with a power average of {inputs['power']} W.")
 
