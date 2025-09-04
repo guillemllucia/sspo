@@ -67,8 +67,11 @@ if 'expires_at' in st.session_state and datetime.now().timestamp() > st.session_
 
 
 # --- PREDICTION FUNCTION ---
-def predict_time_from_api(segment_data, map_data, line_segments_df, weather_data, user_inputs):
+def predict_time_from_api(segment_data:dict, map_data:pd.DataFrame, line_segments_df:pd.DataFrame, weather_data:dict, user_inputs:dict):
     api_url = "https://api-879488749692.europe-west1.run.app/predict"
+    #st.write(user_inputs, segment_data, map_data, line_segments_df, weather_data)
+    #st.write(line_segments_df.to_json(orient="records"))
+    #st.write(user_inputs, segment_data, map_data, line_segments_df, weather_data)
     try:
         params = {
             'athlete_weight': int(user_inputs['weight']),
