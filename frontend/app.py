@@ -68,9 +68,9 @@ def show_authentication_page(auth):
     if button_image_path.is_file():
         with open(button_image_path, "rb") as f:
             image_base64 = base64.b64encode(f.read()).decode()
-        connect_button_html = f"<a href='{auth_url}' target='_self'><img src='data:image/png;base64,{image_base64}' alt='Connect with Strava'></a>"
+        connect_button_html = f"<a href='{auth_url}' target='_blank'><img src='data:image/png;base64,{image_base64}' alt='Connect with Strava'></a>"
     else:
-        connect_button_html = f'<a href="{auth_url}" target="_self" style="display: block; padding: 0.5em 1em; background-color: #FC4C02; color: white; text-decoration: none; border-radius: 0.5rem; text-align: center; width: 100%; box-sizing: border-box;">🔗 Connect to Strava</a>'
+        connect_button_html = f'<a href="{auth_url}" target="_blank" style="display: block; padding: 0.5em 1em; background-color: #FC4C02; color: white; text-decoration: none; border-radius: 0.5rem; text-align: center; width: 100%; box-sizing: border-box;">🔗 Connect to Strava</a>'
         st.warning(f"Login button image not found at path: {button_image_path}")
 
     attribution_logo_path = script_dir / "api_logo_cptblWith_strava_horiz_white.png"
