@@ -61,3 +61,26 @@ def predict(
     y_pred = app.state.model.predict(X_pred)
     y_pred = float(y_pred[0])
     return {'Seconds': y_pred}
+
+
+"""@app.get("/predict")
+def predict(df):
+    times = []
+    calc_speed = []
+    for idx, each in df.iterrows():
+        if idx == 0:
+            y_pred = app.state.model.predict(each)
+            y_pred = float(y_pred[0])
+            calc_speed = each.distance / y_pred
+            times.append[y_pred]
+            calc_speed.append(calc_speed)
+        else:
+            eac[speed] = calc_speed[-1]
+            y_pred = app.state.model.predict(each)
+            y_pred = float(y_pred[0])
+            calc_speed = each.distance / y_pred
+            times.append[y_pred]
+
+    final_sum = sum(times)
+
+    return {'Seconds': final_sum, all_speeds:calc_speed }"""
