@@ -78,7 +78,7 @@ def predict_time_from_api(
     weather_data: dict,
     user_inputs: dict,
 ):
-    api_url = "http://localhost:8000/predict_df"
+    api_url = "https://api-879488749692.europe-west1.run.app/predict_df"
 
     try:
         user_inputs_clean = {
