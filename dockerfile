@@ -5,5 +5,5 @@ RUN pip install -r requirements.txt
 COPY sspo /sspo
 COPY setup.py /setup.py
 RUN pip install .
-
+COPY model_500m_no_power_max.pkl model_500m_no_power_max.pkl
 CMD uvicorn sspo.api.fast:app --host 0.0.0.0 --port $PORT
