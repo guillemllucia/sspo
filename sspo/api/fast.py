@@ -21,7 +21,8 @@ class FromFrontend(BaseModel):
 app = FastAPI()
 # best_model_name = get_best_model_filename()
 # xgb_reg = load_xgb_reg(best_model_name)
-app.state.model = pickle.load(open("model.pkl", "rb"))
+model_data = pickle.load(open("model_500m_no_power_max.pkl", "rb"))
+app.state.model = model_data["model"]
 
 # Allowing all middleware is optional, but good practice for dev purposes
 app.add_middleware(
@@ -57,14 +58,12 @@ def index():
 def predict(
     athlete_weight: int,
     distance: int,
-    avg_grade: float,
-    max_grade: float,
-    elevation_gain: int,
-    start_latitude: float,
-    start_longitude: float,
-    end_latitude: float,
-    end_longitude: float,
-    avg_power: int,
+    gradient_mean: float,
+    gradient_max: float,
+    map_distance: int,
+    map_direction: int,
+    power_mean: int,
+    speed_first: float,
     temperature: int,
     wind_speed: int,
     wind_direction: int,
@@ -74,14 +73,12 @@ def predict(
         dict(
             athlete_weight=[np.int8(athlete_weight)],
             distance=[np.int32(distance)],
-            avg_grade=[np.float16(avg_grade)],
-            max_grade=[np.float16(max_grade)],
-            elevation_gain=[np.int16(elevation_gain)],
-            start_latitude=[np.float16(start_latitude)],
-            start_longitude=[np.float16(start_longitude)],
-            end_latitude=[np.float16(end_latitude)],
-            end_longitude=[np.float16(end_longitude)],
-            avg_power=[np.int16(avg_power)],
+            gradient_mean=[np.float16(gradient_mean)],
+            gradient_max=[np.float16(gradient_max)],
+            map_distance=[np.int16(map_distance)],
+            map_direction=[np.int16(map_direction)],
+            power_mean=[np.int16(power_mean)],
+            speed_first=[np.float16(speed_first)],
             temperature=[np.int8(temperature)],
             wind_speed=[np.int8(wind_speed)],
             wind_direction=[np.int16(wind_direction)],
@@ -146,7 +143,6 @@ def predict_df(request: FromFrontend):
     )
     groupby_df.loc[:, "athlete_weight"] = user_inputs["weight"]
     groupby_df.loc[:, "power_mean"] = user_inputs["power"]
-    groupby_df.loc[:, "power_max"] = user_inputs["power"] * 1.85
     groupby_df.loc[:, "speed_first"] = user_inputs["entry_speed"]
     groupby_df.loc[:, "temperature"] = round(weather_data["temperature"], 0)
     groupby_df.loc[:, "wind_speed"] = round(weather_data["wind_speed"], 0)
@@ -169,7 +165,6 @@ def predict_df(request: FromFrontend):
         "map_distance",
         "map_direction",
         "power_mean",
-        "power_max",
         "speed_first",
         "temperature",
         "wind_speed",
