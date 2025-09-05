@@ -402,7 +402,7 @@ def show_main_app():
 
         col_seg, col_weight = st.columns(2)
         with col_seg:
-            segment_url = st.text_input("Strava Segment URL or ID:", value=13260861)
+            segment_url = st.text_input("Strava Segment URL or ID:", value=728237)
         with col_weight:
             default_weight = int(athlete.get("weight", 75) or 75)
             weight = st.number_input(
@@ -474,7 +474,7 @@ def show_main_app():
         st.markdown("")
         st.markdown("")
         st.markdown("")
-        st.info("⬅️ Enter your details in the sidebar to generate a pacing plan.")
+        st.info("⬅️ Enter your details in the sidebar to generate a time estimate.")
 
 
 def show_results_page(inputs):
@@ -498,7 +498,7 @@ def show_results_page(inputs):
             return
 
         st.markdown(
-            f"<h1 style='color: #FF4B4B;'>Pacing Plan for: <span class='bestlink'><a href='https://www.strava.com/segments/{segment_id}'>{segment_data['name']}</a></span></>",
+            f"<h1 style='color: #FF4B4B;'>Time estimate for: <span class='bestlink'><a href='https://www.strava.com/segments/{segment_id}'>{segment_data['name']}</a></span></>",
             unsafe_allow_html=True,
         )
 
