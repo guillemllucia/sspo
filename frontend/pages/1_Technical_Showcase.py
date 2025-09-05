@@ -20,6 +20,9 @@ st.markdown("""
         .showcase-text {
             text-align: justify;
         }
+        [data-testid="stSidebar"] {
+            width: 300px !important;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -33,25 +36,32 @@ with st.sidebar:
         5: "Performance & Limitations"
     }
 
+    if st.session_state.demo_step < 5:
+        if st.button("Next ➡️", use_container_width=True):
+            st.session_state.demo_step += 1
+            st.rerun()
+    else:
+        if st.button("🚀 Product Demo", use_container_width=True, type="primary"):
+            st.session_state.demo_step = 1
+            st.switch_page("pages/0_Main_Dashboard.py")
+
+    if st.button("⬅️ Previous", use_container_width=True, disabled=(st.session_state.demo_step <= 1)):
+        st.session_state.demo_step -= 1
+        st.rerun()
+
+    st.markdown("---")
+
     current_step_title = steps.get(st.session_state.demo_step, "")
     st.markdown(f'<h1 style="color: #FF4B4B;">{current_step_title}</h1>', unsafe_allow_html=True)
 
     st.markdown("---")
-
-    col_prev, col_next = st.columns(2)
-    with col_prev:
-        if st.button("⬅️ Previous", use_container_width=True, disabled=(st.session_state.demo_step <= 1)):
-            st.session_state.demo_step -= 1
-            st.rerun()
-    with col_next:
-        if st.session_state.demo_step < 5:
-            if st.button("Next ➡️", use_container_width=True):
-                st.session_state.demo_step += 1
-                st.rerun()
-        else:
-            if st.button("🚀 Product Demo", use_container_width=True, type="primary"):
-                st.session_state.demo_step = 1
-                st.switch_page("pages/0_Main_Dashboard.py")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
+    st.markdown("")
 
     if st.button("Exit Showcase"):
         st.session_state.demo_step = 1 # Reset step for next time
@@ -59,7 +69,7 @@ with st.sidebar:
 
 # --- Step-by-step logic ---
 if st.session_state.demo_step == 1:
-    col1, col2 = st.columns([1,1])
+    col1, col2 = st.columns([1.1,1])
     with col1:
         st.info("""
         * ### 🏆 Strava is the #1 social network for athletes, supporting many sports.
@@ -68,7 +78,9 @@ if st.session_state.demo_step == 1:
         * ### ⛰️ Achieving a **King of the Mountain (KOM)** is a major goal for many cyclists.
         """)
     with col2:
-        st.image("https://i.imgur.com/example_leaderboard.png", caption="The coveted Strava Leaderboard, where legends are made.")
+        st.image("https://codaio.imgix.net/packs/10562/unversioned/assets/COVER/726b965ab3788b6d569a33a466ef1804f948cff6f3d76c09a91cb58f3f483fb96310a5f3f784fc7203f63b4dafc554e9f5769555f9281ce83e55754d4b28c174fa969ee6565a6258652e908cecd906bebf073c347364fc193804a6e0ab5cf0e8081b4f10?fit=crop&ar=1.91%3A1&fm=jpg")
+    st.image("https://images2.giant-bicycles.com/b_white%2Cc_pad%2Ch_600%2Cq_80%2Cw_1920/jt7khbh9gwvgdixi9o9g/Banner_lingo.jpg")
+
 
 elif st.session_state.demo_step == 2:
     col1, col2 = st.columns([1,1])

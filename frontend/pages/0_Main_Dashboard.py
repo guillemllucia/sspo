@@ -276,7 +276,6 @@ def get_elevation_data(map_df):
         )
     else:
         map_df = sampled_df
-        st.success(f"✅ Elevation data loaded for {len(map_df)} points")
 
     return map_df
 
