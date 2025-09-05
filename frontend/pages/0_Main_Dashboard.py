@@ -402,9 +402,9 @@ def show_main_app():
 
         col_seg, col_weight = st.columns(2)
         with col_seg:
-            segment_url = st.text_input("Strava Segment URL or ID:", value=728237)
+            segment_url = st.text_input("Strava Segment URL or ID:", value=12550955)
         with col_weight:
-            default_weight = int(athlete.get("weight", 70) or 70)
+            default_weight = int(athlete.get("weight", 75) or 75)
             weight = st.number_input(
                 "Your Weight (kg):",
                 min_value=40,

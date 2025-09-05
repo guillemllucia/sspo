@@ -31,7 +31,7 @@ with st.sidebar:
     steps = {
         1: "What is Strava?",
         2: "Pacing is Complex",
-        3: "Data Integration",
+        3: "Data & Model",
         4: "Modeling & Visualization",
         5: "Performance & Limitations"
     }
@@ -123,8 +123,10 @@ elif st.session_state.demo_step == 2:
         st.image("https://i.postimg.cc/sXSPBVc7/Screenshot-2025-09-05-142235.png", use_container_width=True)
 
 elif st.session_state.demo_step == 3:
-    col1, col2 = st.columns([1,1.06])
+    col1, col2 = st.columns([1.08,1])
     with col1:
+        st.image("https://cdn.mos.cms.futurecdn.net/Um7RXXdVVRWqxj76kY3GoQ.jpg")
+    with col2:
         st.info("""
         ### 📲 Data originates from the past rides of cyclists at all skill levels.
         ### 📊 The dataset includes key metrics such as location, ride time, and effort.
@@ -133,6 +135,8 @@ elif st.session_state.demo_step == 3:
         ### ☁️ This final dataset trains an XGBoost Regressor model to predict ride times.
         #####
         """)
+    col1, col2 = st.columns([1.06,1])
+    with col1:
+        st.image("https://i.postimg.cc/j5S0tSrq/Screenshot-2025-09-05-163557rtrt.png", use_container_width=True)
     with col2:
-        st.image("https://cdn.mos.cms.futurecdn.net/Um7RXXdVVRWqxj76kY3GoQ.jpg")
-    st.image("https://i.postimg.cc/cH4gW0zd/image-2.png", use_container_width=True)
+        st.image("https://i.postimg.cc/qvsNSjLc/Screenshot-2025-09-05-161448.png", use_container_width=True)
